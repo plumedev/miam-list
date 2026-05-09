@@ -48,23 +48,48 @@
         Uploadez la photo des ingrédients d'une de vos fiches HelloFresh.
       </p>
       
+      <!-- Inputs cachés -->
+      <input 
+        type="file" 
+        accept="image/*" 
+        capture="environment" 
+        class="hidden" 
+        ref="cameraInput" 
+        @change="onFileSelected"
+      />
       <input 
         type="file" 
         accept="image/*" 
         class="hidden" 
-        ref="fileInput" 
+        ref="galleryInput" 
         @change="onFileSelected"
       />
       
-      <UButton 
-        size="lg" 
-        color="primary" 
-        class="w-full justify-center rounded-2xl py-3.5 font-semibold text-base shadow-lg shadow-primary-500/30"
-        :loading="isLoading"
-        @click="$refs.fileInput?.click()"
-      >
-        {{ isLoading ? 'Analyse en cours...' : 'Choisir une image' }}
-      </UButton>
+      <!-- Boutons visibles -->
+      <div class="flex flex-col gap-3">
+        <UButton 
+          size="lg" 
+          color="primary" 
+          icon="i-heroicons-camera"
+          class="w-full justify-center rounded-2xl py-3.5 font-semibold text-base shadow-lg shadow-primary-500/30"
+          :loading="isLoading"
+          @click="$refs.cameraInput?.click()"
+        >
+          Prendre une photo
+        </UButton>
+        
+        <UButton 
+          size="lg" 
+          color="neutral" 
+          variant="soft"
+          icon="i-heroicons-photo"
+          class="w-full justify-center rounded-2xl py-3.5 font-semibold text-base"
+          :loading="isLoading"
+          @click="$refs.galleryInput?.click()"
+        >
+          Parcourir la galerie
+        </UButton>
+      </div>
     </div>
 
     <!-- État : Résultat de l'OCR -->
@@ -125,7 +150,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const fileInput = ref<HTMLInputElement | null>(null)
+const cameraInput = ref<HTMLInputElement | null>(null)
+const galleryInput = ref<HTMLInputElement | null>(null)
 const isLoading = ref(false)
 const isSaving = ref(false)
 const scanResult = ref<any>(null)
@@ -198,7 +224,8 @@ async function onFileSelected(event: Event) {
     alert('Une erreur est survenue lors de l\'analyse de l\'image.')
   } finally {
     isLoading.value = false
-    if (fileInput.value) fileInput.value.value = ''
+    if (cameraInput.value) cameraInput.value.value = ''
+    if (galleryInput.value) galleryInput.value.value = ''
   }
 }
 
