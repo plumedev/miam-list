@@ -221,7 +221,7 @@ async function saveRecipe() {
     toast.add({
       title: 'Recette sauvegardée !',
       description: 'Les ingrédients ont été ajoutés à votre base de données.',
-      color: 'green',
+      color: 'success',
       icon: 'i-heroicons-check-circle'
     })
     

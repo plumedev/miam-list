@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
@@ -42,18 +42,18 @@ export default defineEventHandler(async (event) => {
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
-          type: "OBJECT",
+          type: Type.OBJECT,
           properties: {
-            title: { type: "STRING" },
-            servings: { type: "INTEGER" },
+            title: { type: Type.STRING },
+            servings: { type: Type.INTEGER },
             ingredients: {
-              type: "ARRAY",
+              type: Type.ARRAY,
               items: {
-                type: "OBJECT",
+                type: Type.OBJECT,
                 properties: {
-                  name: { type: "STRING" },
-                  quantity: { type: "NUMBER" },
-                  unit: { type: "STRING" }
+                  name: { type: Type.STRING },
+                  quantity: { type: Type.NUMBER },
+                  unit: { type: Type.STRING }
                 }
               }
             }

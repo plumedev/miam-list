@@ -2,9 +2,9 @@
   <div class="pb-24">
     <!-- Header -->
     <div class="flex items-center mb-6">
-      <UButton color="gray" variant="ghost" icon="i-heroicons-chevron-left" class="mr-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm" to="/" />
+      <UButton color="neutral" variant="ghost" icon="i-heroicons-chevron-left" class="mr-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm" to="/" />
       <h1 class="text-lg font-bold text-primary-500">View Cart</h1>
-      <UButton color="gray" variant="ghost" icon="i-heroicons-arrow-path" @click="refresh" :loading="pending" class="ml-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm" />
+      <UButton color="neutral" variant="ghost" icon="i-heroicons-arrow-path" @click="() => refresh()" :loading="pending" class="ml-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm" />
     </div>
 
     <!-- Error -->
