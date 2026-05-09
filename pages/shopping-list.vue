@@ -4,7 +4,24 @@
     <div class="flex items-center mb-6">
       <UButton color="neutral" variant="ghost" icon="i-heroicons-chevron-left" class="mr-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm" to="/" />
       <h1 class="text-lg font-bold text-primary-500">View Cart</h1>
-      <UButton color="neutral" variant="ghost" icon="i-heroicons-arrow-path" @click="() => refresh()" :loading="pending" class="ml-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm" />
+      <div class="ml-auto flex gap-2">
+        <UButton 
+          color="red" 
+          variant="ghost" 
+          icon="i-heroicons-trash" 
+          @click="clearList" 
+          :loading="isClearing" 
+          class="bg-white dark:bg-gray-800 rounded-xl shadow-sm text-red-500" 
+        />
+        <UButton 
+          color="neutral" 
+          variant="ghost" 
+          icon="i-heroicons-arrow-path" 
+          @click="() => refresh()" 
+          :loading="pending" 
+          class="bg-white dark:bg-gray-800 rounded-xl shadow-sm" 
+        />
+      </div>
     </div>
 
     <!-- Error -->
@@ -86,5 +103,41 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+const toast = useToast()
+
 const { data: shoppingList, pending, error, refresh } = await useFetch<any[]>('/api/shopping-list')
+const isClearing = ref(false)
+
+async function clearList() {
+  const confirmDelete = confirm("Voulez-vous vraiment vider votre liste de courses ? Toutes les recettes scannées seront oubliées.")
+  if (!confirmDelete) return
+
+  isClearing.value = true
+  try {
+    await $fetch('/api/shopping-list', {
+      method: 'DELETE'
+    })
+    
+    // Rafraichir les données pour afficher le panier vide
+    await refresh()
+    
+    toast.add({
+      title: 'Liste vidée',
+      description: 'Votre panier est maintenant vide.',
+      color: 'success',
+      icon: 'i-heroicons-trash'
+    })
+  } catch (err) {
+    console.error('Erreur:', err)
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de vider la liste.',
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle'
+    })
+  } finally {
+    isClearing.value = false
+  }
+}
 </script>
