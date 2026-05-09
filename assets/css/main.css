@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --color-primary-50: #f2f9f0;
+  --color-primary-100: #e1f2dd;
+  --color-primary-200: #c4e4bc;
+  --color-primary-300: #9dd18f;
+  --color-primary-400: #71b75f;
+  --color-primary-500: #4f9a3a; /* Vert vibrant du design */
+  --color-primary-600: #3c7d29;
+  --color-primary-700: #306322;
+  --color-primary-800: #284f1e;
+  --color-primary-900: #22411b;
+  --color-primary-950: #10230b;
+
+  --font-sans: 'Outfit', sans-serif;
+}
+
+body {
+  @apply antialiased bg-[#F9F9F9] dark:bg-gray-950 text-[#1A1A1A] dark:text-white;
+}
+
+/* Utilitaires supplémentaires pour l'esthétique "App Mobile" */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}

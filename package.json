@@ -1,0 +1,24 @@
+{
+  "name": "hellofresh-ocr",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@google/genai": "^0.7.0",
+    "@nuxt/ui": "^3.0.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "nuxt": "^3.14.0",
+    "vue": "^3.5.0",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "typescript": "^5.5.0"
+  }
+}
