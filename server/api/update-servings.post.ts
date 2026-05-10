@@ -1,9 +1,21 @@
-import { serverSupabaseServiceRole, serverSupabaseUser, serverSupabaseSession } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event);
-  const session = await serverSupabaseSession(event);
-  const userId = user?.id || (user as any)?.value?.id || session?.user?.id;
+  const supabase = serverSupabaseServiceRole(event);
+  
+  const authHeader = getHeader(event, 'Authorization');
+  let userId = null;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const { data } = await supabase.auth.getUser(token);
+    userId = data.user?.id;
+  }
+
+  if (!userId) {
+    const user = await serverSupabaseUser(event);
+    userId = user?.id || (user as any)?.value?.id;
+  }
   
   if (!userId) {
     throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
@@ -13,8 +25,6 @@ export default defineEventHandler(async (event) => {
   if (!body || !body.recipeId || typeof body.newServings !== 'number') {
     throw createError({ statusCode: 400, statusMessage: 'Paramètres invalides.' });
   }
-
-  const supabase = serverSupabaseServiceRole(event);
 
   // 1. Récupérer la recette actuelle pour avoir les portions d'origine
   const { data: recipe, error: recipeError } = await supabase

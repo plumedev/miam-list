@@ -28,8 +28,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'ID de recette manquant.' });
   }
 
-  const supabase = serverSupabaseServiceRole(event);
-
   // 1. Supprimer d'abord les ingrédients pour éviter les problèmes de clé étrangère
   const { error: ingredientsError } = await supabase
     .from('ingredients')
