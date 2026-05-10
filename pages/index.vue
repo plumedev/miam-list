@@ -73,7 +73,7 @@
           icon="i-heroicons-camera"
           class="w-full justify-center rounded-2xl py-3.5 font-semibold text-base shadow-lg shadow-primary-500/30"
           :loading="isLoading"
-          @click="$refs.cameraInput?.click()"
+          @click="cameraInput?.click()"
         >
           Prendre une photo
         </UButton>
@@ -85,7 +85,7 @@
           icon="i-heroicons-photo"
           class="w-full justify-center rounded-2xl py-3.5 font-semibold text-base"
           :loading="isLoading"
-          @click="$refs.galleryInput?.click()"
+          @click="galleryInput?.click()"
         >
           Parcourir la galerie
         </UButton>

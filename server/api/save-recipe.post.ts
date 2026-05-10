@@ -1,14 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
+import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
+  const user = await serverSupabaseUser(event);
   
-  if (!config.public.supabaseUrl || !config.supabaseServiceKey) {
-    throw createError({ statusCode: 500, statusMessage: 'Identifiants Supabase manquants.' });
+  if (!user) {
+    throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
   }
 
-  // On utilise la clé service_role car on est côté serveur (contourne les règles RLS si elles étaient activées)
-  const supabase = createClient(config.public.supabaseUrl, config.supabaseServiceKey);
+  const supabase = await serverSupabaseClient(event);
 
   // Récupérer le corps de la requête
   const body = await readBody(event);
@@ -20,6 +19,7 @@ export default defineEventHandler(async (event) => {
   const { data: recipe, error: recipeError } = await supabase
     .from('recipes')
     .insert({
+      user_id: user.id,
       title: body.title,
       servings: body.servings || 2,
       prep_time: body.prep_time || null,
@@ -36,6 +36,7 @@ export default defineEventHandler(async (event) => {
 
   // 2. Préparer et sauvegarder les ingrédients
   const ingredientsToInsert = body.ingredients.map((ing: any) => ({
+    user_id: user.id,
     recipe_id: recipe.id,
     name: ing.name,
     quantity: ing.quantity,

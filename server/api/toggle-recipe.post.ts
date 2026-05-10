@@ -1,18 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
+import { serverSupabaseClient } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
-  
-  if (!config.public.supabaseUrl || !config.supabaseServiceKey) {
-    throw createError({ statusCode: 500, statusMessage: 'Identifiants Supabase manquants.' });
-  }
-
   const body = await readBody(event);
+  
   if (!body || !body.id || typeof body.in_shopping_list !== 'boolean') {
-    throw createError({ statusCode: 400, statusMessage: 'Paramètres invalides.' });
+    throw createError({ statusCode: 400, statusMessage: 'Paramètres manquants ou invalides.' });
   }
 
-  const supabase = createClient(config.public.supabaseUrl, config.supabaseServiceKey);
+  const supabase = await serverSupabaseClient(event);
 
   const { error } = await supabase
     .from('recipes')

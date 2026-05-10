@@ -1,18 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
+import { serverSupabaseClient } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
-  
-  if (!config.public.supabaseUrl || !config.supabaseServiceKey) {
-    throw createError({ statusCode: 500, statusMessage: 'Identifiants Supabase manquants.' });
-  }
-
   const body = await readBody(event);
   if (!body || !body.recipeId || typeof body.newServings !== 'number') {
     throw createError({ statusCode: 400, statusMessage: 'Paramètres invalides.' });
   }
 
-  const supabase = createClient(config.public.supabaseUrl, config.supabaseServiceKey);
+  const supabase = await serverSupabaseClient(event);
 
   // 1. Récupérer la recette actuelle pour avoir les portions d'origine
   const { data: recipe, error: recipeError } = await supabase

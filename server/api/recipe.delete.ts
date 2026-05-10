@@ -1,12 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { serverSupabaseClient } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig();
-  
-  if (!config.public.supabaseUrl || !config.supabaseServiceKey) {
-    throw createError({ statusCode: 500, statusMessage: 'Identifiants Supabase manquants.' });
-  }
-
   const query = getQuery(event);
   const id = query.id as string;
 
@@ -14,7 +8,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'ID de recette manquant.' });
   }
 
-  const supabase = createClient(config.public.supabaseUrl, config.supabaseServiceKey);
+  const supabase = await serverSupabaseClient(event);
 
   // 1. Supprimer d'abord les ingrédients pour éviter les problèmes de clé étrangère
   const { error: ingredientsError } = await supabase

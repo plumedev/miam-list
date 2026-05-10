@@ -16,9 +16,9 @@
             <p class="font-bold text-gray-900 dark:text-white">Scanner & Courses</p>
           </div>
         </NuxtLink>
-        <div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm">
-          <img src="https://ui-avatars.com/api/?name=L+U&background=random&color=fff" alt="Avatar" />
-        </div>
+        <NuxtLink v-if="user" to="/profile" class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors">
+          <UIcon name="i-heroicons-user" class="w-6 h-6" />
+        </NuxtLink>
       </div>
     </header>
     
@@ -59,3 +59,7 @@
 
   </div>
 </template>
+
+<script setup lang="ts">
+const user = useSupabaseUser()
+</script>
