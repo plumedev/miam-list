@@ -1,12 +1,16 @@
-import { serverSupabaseClient } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const supabase = await serverSupabaseClient(event);
+  const user = await serverSupabaseUser(event);
+  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+
+  const supabase = serverSupabaseServiceRole(event);
 
   // On désélectionne simplement toutes les recettes
   const { error: updateError } = await supabase
     .from('recipes')
     .update({ in_shopping_list: false })
+    .eq('user_id', user.id)
     .neq('title', 'impossible_string_123'); // Bypass pour affecter toutes les lignes
 
   if (updateError) {

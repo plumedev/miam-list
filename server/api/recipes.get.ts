@@ -1,11 +1,15 @@
-import { serverSupabaseClient } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const supabase = await serverSupabaseClient(event);
+  const user = await serverSupabaseUser(event);
+  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+
+  const supabase = serverSupabaseServiceRole(event);
 
   const { data: recipes, error } = await supabase
     .from('recipes')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {

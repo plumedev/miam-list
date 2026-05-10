@@ -54,7 +54,7 @@
       >
         <!-- Thumbnail -->
         <div class="w-[60px] h-[60px] bg-white dark:bg-gray-800 rounded-[18px] flex-shrink-0 flex items-center justify-center text-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-          🛒
+          {{ getIngredientEmoji(item.name) }}
         </div>
         
         <!-- Info -->

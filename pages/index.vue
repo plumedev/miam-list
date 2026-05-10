@@ -150,7 +150,7 @@
           >
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-gray-50 dark:bg-gray-900 rounded-xl flex items-center justify-center text-lg border border-gray-100 dark:border-gray-800">
-                🥑
+                {{ getIngredientEmoji(ingredient.name) }}
               </div>
               <span class="font-medium text-gray-900 dark:text-white capitalize text-[15px]">{{ ingredient.name }}</span>
             </div>

@@ -1,4 +1,4 @@
-import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
@@ -7,7 +7,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
   }
 
-  const supabase = await serverSupabaseClient(event);
+  // Utilisation de la clé Service Role pour l'insertion afin d'éviter le blocage RLS strict
+  const supabase = serverSupabaseServiceRole(event);
 
   // Récupérer le corps de la requête
   const body = await readBody(event);
@@ -31,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
   if (recipeError || !recipe) {
     console.error('Erreur Supabase (Recipes):', recipeError);
-    throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la sauvegarde de la recette.' });
+    throw createError({ statusCode: 500, statusMessage: `Erreur Supabase: ${recipeError?.message || 'Erreur inconnue'}` });
   }
 
   // 2. Préparer et sauvegarder les ingrédients

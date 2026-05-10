@@ -1,18 +1,22 @@
-import { serverSupabaseClient } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
+  const user = await serverSupabaseUser(event);
+  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+
   const body = await readBody(event);
   if (!body || !body.recipeId || typeof body.newServings !== 'number') {
     throw createError({ statusCode: 400, statusMessage: 'Paramètres invalides.' });
   }
 
-  const supabase = await serverSupabaseClient(event);
+  const supabase = serverSupabaseServiceRole(event);
 
   // 1. Récupérer la recette actuelle pour avoir les portions d'origine
   const { data: recipe, error: recipeError } = await supabase
     .from('recipes')
     .select('servings')
     .eq('id', body.recipeId)
+    .eq('user_id', user.id)
     .single();
 
   if (recipeError || !recipe) {
@@ -26,7 +30,8 @@ export default defineEventHandler(async (event) => {
   const { error: updateRecipeError } = await supabase
     .from('recipes')
     .update({ servings: body.newServings })
-    .eq('id', body.recipeId);
+    .eq('id', body.recipeId)
+    .eq('user_id', user.id);
 
   if (updateRecipeError) {
     throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la mise à jour de la recette.' });

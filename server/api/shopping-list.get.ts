@@ -1,13 +1,17 @@
-import { serverSupabaseClient } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const supabase = await serverSupabaseClient(event);
+  const user = await serverSupabaseUser(event);
+  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+
+  const supabase = serverSupabaseServiceRole(event);
 
   // 1. Récupérer d'abord les IDs des recettes sélectionnées
   const { data: selectedRecipes, error: recipesError } = await supabase
     .from('recipes')
     .select('id')
-    .eq('in_shopping_list', true);
+    .eq('in_shopping_list', true)
+    .eq('user_id', user.id);
 
   if (recipesError || !selectedRecipes) {
     console.error('Erreur Supabase (Fetch Recipes for List):', recipesError);

@@ -1,6 +1,9 @@
-import { serverSupabaseClient } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
+  const user = await serverSupabaseUser(event);
+  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+
   const query = getQuery(event);
   const id = query.id as string;
 
@@ -8,13 +11,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'ID de recette manquant.' });
   }
 
-  const supabase = await serverSupabaseClient(event);
+  const supabase = serverSupabaseServiceRole(event);
 
   // 1. Supprimer d'abord les ingrédients pour éviter les problèmes de clé étrangère
   const { error: ingredientsError } = await supabase
     .from('ingredients')
     .delete()
-    .eq('recipe_id', id);
+    .eq('recipe_id', id)
+    .eq('user_id', user.id);
 
   if (ingredientsError) {
     console.error('Erreur Supabase (Delete Recipe Ingredients):', ingredientsError);
