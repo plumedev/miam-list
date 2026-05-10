@@ -304,8 +304,12 @@ async function saveRecipe() {
   isSaving.value = true
   
   try {
+    const session = useSupabaseSession()
+    const token = session.value?.access_token
+
     await $fetch('/api/save-recipe', {
       method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: {
         title: scanResult.value.title,
         servings: scanResult.value.servings,

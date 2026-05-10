@@ -138,8 +138,11 @@ function clearList() {
 async function executeClearList() {
   isClearing.value = true
   try {
+    const session = useSupabaseSession()
+    const token = session.value?.access_token
     await $fetch('/api/shopping-list', {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined
     })
     
     // Rafraichir les données pour afficher le panier vide

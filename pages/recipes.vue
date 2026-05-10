@@ -130,8 +130,11 @@ const selectedCount = computed(() => {
 
 async function toggleList(recipe: any) {
   try {
+    const session = useSupabaseSession()
+    const token = session.value?.access_token
     await $fetch('/api/toggle-recipe', {
       method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: { id: recipe.id, in_shopping_list: recipe.in_shopping_list }
     })
   } catch (err) {
@@ -156,8 +159,11 @@ async function executeDelete() {
 
   isDeleting.value = true
   try {
+    const session = useSupabaseSession()
+    const token = session.value?.access_token
     await $fetch(`/api/recipe?id=${recipeToDelete.value}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined
     })
     
     toast.add({ title: 'Recette supprimée', color: 'success', icon: 'i-heroicons-trash' })
@@ -178,8 +184,11 @@ async function updateServings(recipe: any, delta: number) {
   recipe.isUpdatingServings = true
   
   try {
+    const session = useSupabaseSession()
+    const token = session.value?.access_token
     await $fetch('/api/update-servings', {
       method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: { recipeId: recipe.id, newServings }
     })
     
