@@ -1,17 +1,25 @@
-import { serverSupabaseServiceRole, serverSupabaseUser, serverSupabaseSession } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event);
-  const session = await serverSupabaseSession(event);
+  const supabase = serverSupabaseServiceRole(event);
   
-  // Extraction robuste de l'ID utilisateur pour pallier toute différence de version Nuxt Supabase
-  const userId = user?.id || (user as any)?.value?.id || session?.user?.id;
+  const authHeader = getHeader(event, 'Authorization');
+  let userId = null;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const { data } = await supabase.auth.getUser(token);
+    userId = data.user?.id;
+  }
+
+  if (!userId) {
+    const user = await serverSupabaseUser(event);
+    userId = user?.id || (user as any)?.value?.id;
+  }
   
   if (!userId) {
     throw createError({ statusCode: 401, statusMessage: 'Non autorisé (ID introuvable).' });
   }
-
-  const supabase = serverSupabaseServiceRole(event);
 
   const { data: recipes, error } = await supabase
     .from('recipes')

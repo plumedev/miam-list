@@ -127,7 +127,13 @@
 import { ref } from 'vue'
 const toast = useToast()
 
-const { data: shoppingList, pending, error, refresh } = await useFetch<any[]>('/api/shopping-list')
+const session = useSupabaseSession()
+const { data: shoppingList, pending, error, refresh } = await useFetch<any[]>('/api/shopping-list', {
+  headers: {
+    ...(session.value?.access_token ? { Authorization: `Bearer ${session.value.access_token}` } : {}),
+    ...useRequestHeaders(['cookie'])
+  }
+})
 const isClearing = ref(false)
 const isDeleteModalOpen = ref(false)
 

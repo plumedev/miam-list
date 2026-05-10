@@ -121,7 +121,13 @@
 import { computed } from 'vue'
 const toast = useToast()
 
-const { data: recipes, pending, error, refresh } = await useFetch<any[]>('/api/recipes')
+const session = useSupabaseSession()
+const { data: recipes, pending, error, refresh } = await useFetch<any[]>('/api/recipes', {
+  headers: {
+    ...(session.value?.access_token ? { Authorization: `Bearer ${session.value.access_token}` } : {}),
+    ...useRequestHeaders(['cookie'])
+  }
+})
 
 const selectedCount = computed(() => {
   if (!recipes.value) return 0
