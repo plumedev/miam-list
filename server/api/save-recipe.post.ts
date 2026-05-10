@@ -1,16 +1,28 @@
-import { serverSupabaseServiceRole, serverSupabaseUser, serverSupabaseSession } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event);
-  const session = await serverSupabaseSession(event);
-  const userId = user?.id || (user as any)?.value?.id || session?.user?.id;
+  const supabase = serverSupabaseServiceRole(event);
   
-  if (!userId) {
-    throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  // Récupération explicite du token depuis le header (inséré par notre frontend)
+  const authHeader = getHeader(event, 'Authorization');
+  let userId = null;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    // Vérification infaillible du token auprès de Supabase
+    const { data } = await supabase.auth.getUser(token);
+    userId = data.user?.id;
   }
 
-  // Utilisation de la clé Service Role pour l'insertion afin d'éviter le blocage RLS strict
-  const supabase = serverSupabaseServiceRole(event);
+  // Fallback sur le cookie si le header manque (utile pour le SSR)
+  if (!userId) {
+    const user = await serverSupabaseUser(event);
+    userId = user?.id || (user as any)?.value?.id;
+  }
+  
+  if (!userId) {
+    throw createError({ statusCode: 401, statusMessage: 'Non autorisé (Token invalide ou introuvable).' });
+  }
 
   // Récupérer le corps de la requête
   const body = await readBody(event);
@@ -39,7 +51,7 @@ export default defineEventHandler(async (event) => {
 
   // 2. Préparer et sauvegarder les ingrédients
   const ingredientsToInsert = body.ingredients.map((ing: any) => ({
-    user_id: user.id,
+    user_id: userId,
     recipe_id: recipe.id,
     name: ing.name,
     quantity: ing.quantity,
