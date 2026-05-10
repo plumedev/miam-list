@@ -1,8 +1,13 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser, serverSupabaseSession } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  const session = await serverSupabaseSession(event);
+  const userId = user?.id || (user as any)?.value?.id || session?.user?.id;
+  
+  if (!userId) {
+    throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  }
 
   const query = getQuery(event);
   const id = query.id as string;
@@ -18,7 +23,7 @@ export default defineEventHandler(async (event) => {
     .from('ingredients')
     .delete()
     .eq('recipe_id', id)
-    .eq('user_id', user.id);
+    .eq('user_id', userId);
 
   if (ingredientsError) {
     console.error('Erreur Supabase (Delete Recipe Ingredients):', ingredientsError);

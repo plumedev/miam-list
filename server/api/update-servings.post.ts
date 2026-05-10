@@ -1,8 +1,13 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser, serverSupabaseSession } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  const session = await serverSupabaseSession(event);
+  const userId = user?.id || (user as any)?.value?.id || session?.user?.id;
+  
+  if (!userId) {
+    throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  }
 
   const body = await readBody(event);
   if (!body || !body.recipeId || typeof body.newServings !== 'number') {
@@ -16,7 +21,7 @@ export default defineEventHandler(async (event) => {
     .from('recipes')
     .select('servings')
     .eq('id', body.recipeId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .single();
 
   if (recipeError || !recipe) {
@@ -31,7 +36,7 @@ export default defineEventHandler(async (event) => {
     .from('recipes')
     .update({ servings: body.newServings })
     .eq('id', body.recipeId)
-    .eq('user_id', user.id);
+    .eq('user_id', userId);
 
   if (updateRecipeError) {
     throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la mise à jour de la recette.' });

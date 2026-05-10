@@ -1,8 +1,13 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser, serverSupabaseSession } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  const session = await serverSupabaseSession(event);
+  const userId = user?.id || (user as any)?.value?.id || session?.user?.id;
+  
+  if (!userId) {
+    throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  }
 
   const supabase = serverSupabaseServiceRole(event);
 
@@ -10,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const { error: updateError } = await supabase
     .from('recipes')
     .update({ in_shopping_list: false })
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .neq('title', 'impossible_string_123'); // Bypass pour affecter toutes les lignes
 
   if (updateError) {

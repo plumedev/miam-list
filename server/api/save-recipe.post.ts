@@ -1,9 +1,11 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser, serverSupabaseSession } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
+  const session = await serverSupabaseSession(event);
+  const userId = user?.id || (user as any)?.value?.id || session?.user?.id;
   
-  if (!user) {
+  if (!userId) {
     throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
   }
 
@@ -20,7 +22,7 @@ export default defineEventHandler(async (event) => {
   const { data: recipe, error: recipeError } = await supabase
     .from('recipes')
     .insert({
-      user_id: user.id,
+      user_id: userId,
       title: body.title,
       servings: body.servings || 2,
       prep_time: body.prep_time || null,

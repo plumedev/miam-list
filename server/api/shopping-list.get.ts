@@ -1,8 +1,13 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server';
+import { serverSupabaseServiceRole, serverSupabaseUser, serverSupabaseSession } from '#supabase/server';
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  const session = await serverSupabaseSession(event);
+  const userId = user?.id || (user as any)?.value?.id || session?.user?.id;
+  
+  if (!userId) {
+    throw createError({ statusCode: 401, statusMessage: 'Non autorisé.' });
+  }
 
   const supabase = serverSupabaseServiceRole(event);
 
@@ -11,7 +16,7 @@ export default defineEventHandler(async (event) => {
     .from('recipes')
     .select('id')
     .eq('in_shopping_list', true)
-    .eq('user_id', user.id);
+    .eq('user_id', userId);
 
   if (recipesError || !selectedRecipes) {
     console.error('Erreur Supabase (Fetch Recipes for List):', recipesError);
