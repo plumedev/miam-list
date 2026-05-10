@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
 
   if (recipesError || !selectedRecipes) {
     console.error('Erreur Supabase (Fetch Recipes for List):', recipesError);
-    throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la récupération des recettes.' });
+    throw createError({ statusCode: 500, statusMessage: `Erreur Supabase: ${recipesError?.message || 'Inconnue'}` });
   }
 
   const recipeIds = selectedRecipes.map(r => r.id);

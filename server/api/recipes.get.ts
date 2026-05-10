@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
   if (error) {
     console.error('Erreur Supabase (Fetch Recipes):', error);
-    throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la récupération des recettes.' });
+    throw createError({ statusCode: 500, statusMessage: `Erreur Supabase: ${error?.message || 'Inconnue'}` });
   }
 
   return recipes;
