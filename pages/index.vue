@@ -94,31 +94,70 @@
 
     <!-- État : Résultat de l'OCR -->
     <div v-else class="bg-white dark:bg-gray-800 rounded-[24px] p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-      <div class="flex justify-between items-start mb-6">
+      <div class="space-y-5 mb-6">
+        <!-- Nom -->
         <div>
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white leading-tight mb-1">{{ scanResult.title || 'Recette sans nom' }}</h2>
-          <p class="text-primary-500 text-sm font-semibold flex items-center gap-1">
-            <UIcon name="i-heroicons-users" class="w-4 h-4" />
-            {{ scanResult.servings }} personnes
-          </p>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Nom de la recette</label>
+          <UInput v-model="scanResult.title" size="lg" class="font-semibold text-lg" variant="none" padded />
+        </div>
+
+        <div class="flex gap-4">
+          <!-- Personnes -->
+          <div class="flex-1">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Personnes</label>
+            <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-900 rounded-xl p-1 w-max border border-gray-100 dark:border-gray-800">
+              <UButton color="neutral" variant="ghost" icon="i-heroicons-minus" @click="updateServings(-1)" :disabled="scanResult.servings <= 1" />
+              <span class="font-bold text-base w-6 text-center">{{ scanResult.servings }}</span>
+              <UButton color="neutral" variant="ghost" icon="i-heroicons-plus" @click="updateServings(1)" />
+            </div>
+          </div>
+          
+          <!-- Temps -->
+          <div class="flex-1">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Temps estimé</label>
+            <UInput v-model="scanResult.prep_time" placeholder="ex: 30 min" size="xl" icon="i-heroicons-clock" class="bg-gray-50 dark:bg-gray-900 rounded-xl" variant="none" />
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Catégories</label>
+          <div class="flex flex-wrap gap-2">
+            <UBadge 
+              v-for="(tag, index) in scanResult.tags" 
+              :key="index" 
+              color="primary" 
+              variant="soft" 
+              class="capitalize text-xs font-bold px-3 py-1 rounded-lg"
+            >
+              {{ tag }}
+            </UBadge>
+            <span v-if="!scanResult.tags || scanResult.tags.length === 0" class="text-sm text-gray-400 italic">Aucune catégorie détectée</span>
+          </div>
         </div>
       </div>
-
-      <div class="space-y-0 mb-6">
-        <div 
-          v-for="(ingredient, index) in scanResult.ingredients" 
-          :key="index" 
-          class="flex justify-between items-center py-4 border-b border-dashed border-gray-200 dark:border-gray-700 last:border-0"
-        >
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gray-50 dark:bg-gray-900 rounded-xl flex items-center justify-center text-lg border border-gray-100 dark:border-gray-800">
-              🥑
+      
+      <div class="border-t border-gray-100 dark:border-gray-800 pt-6 mb-6">
+        <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <UIcon name="i-heroicons-shopping-bag" class="w-5 h-5 text-primary-500" />
+          Ingrédients
+        </h4>
+        <div class="space-y-0">
+          <div 
+            v-for="(ingredient, index) in scanResult.ingredients" 
+            :key="index" 
+            class="flex justify-between items-center py-4 border-b border-dashed border-gray-200 dark:border-gray-700 last:border-0"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-gray-50 dark:bg-gray-900 rounded-xl flex items-center justify-center text-lg border border-gray-100 dark:border-gray-800">
+                🥑
+              </div>
+              <span class="font-medium text-gray-900 dark:text-white capitalize text-[15px]">{{ ingredient.name }}</span>
             </div>
-            <span class="font-medium text-gray-900 dark:text-white capitalize text-[15px]">{{ ingredient.name }}</span>
+            <span class="text-sm font-bold text-gray-500 dark:text-gray-400">
+              {{ ingredient.quantity }} {{ ingredient.unit || '' }}
+            </span>
           </div>
-          <span class="text-sm font-bold text-gray-500 dark:text-gray-400">
-            {{ ingredient.quantity }} {{ ingredient.unit || '' }}
-          </span>
         </div>
       </div>
 
@@ -130,7 +169,7 @@
           :loading="isSaving"
           @click="saveRecipe"
         >
-          Ajouter au panier
+          Enregistrer la recette
         </UButton>
         <UButton 
           size="lg"
@@ -155,6 +194,24 @@ const galleryInput = ref<HTMLInputElement | null>(null)
 const isLoading = ref(false)
 const isSaving = ref(false)
 const scanResult = ref<any>(null)
+const originalScanResult = ref<any>(null)
+
+function updateServings(delta: number) {
+  if (!scanResult.value || !originalScanResult.value) return
+  
+  const newServings = Math.max(1, scanResult.value.servings + delta)
+  scanResult.value.servings = newServings
+  
+  const ratio = newServings / originalScanResult.value.servings
+  
+  scanResult.value.ingredients.forEach((ing: any, idx: number) => {
+    const origQuant = originalScanResult.value.ingredients[idx]?.quantity
+    if (origQuant != null) {
+      // Arrondir à 2 décimales si nécessaire pour éviter les nombres infinis
+      ing.quantity = parseFloat((origQuant * ratio).toFixed(2))
+    }
+  })
+}
 
 // Fonction de compression d'image dans le navigateur (réduit les tokens et accélère l'upload)
 async function compressImage(file: File): Promise<Blob> {
@@ -218,10 +275,22 @@ async function onFileSelected(event: Event) {
       method: 'POST',
       body: formData
     })
-    scanResult.value = data
+    
+    // On copie le résultat pour pouvoir calculer les proportions plus tard
+    scanResult.value = JSON.parse(JSON.stringify(data))
+    originalScanResult.value = JSON.parse(JSON.stringify(data))
+    
+    // Initialiser les tags si l'IA ne l'a pas fait
+    if (!scanResult.value.tags) scanResult.value.tags = []
   } catch (error) {
     console.error('Erreur lors du scan:', error)
-    alert('Une erreur est survenue lors de l\'analyse de l\'image.')
+    const toast = useToast()
+    toast.add({
+      title: 'Erreur',
+      description: 'Une erreur est survenue lors de l\'analyse de l\'image.',
+      color: 'red',
+      icon: 'i-heroicons-exclamation-triangle'
+    })
   } finally {
     isLoading.value = false
     if (cameraInput.value) cameraInput.value.value = ''
@@ -240,6 +309,8 @@ async function saveRecipe() {
       body: {
         title: scanResult.value.title,
         servings: scanResult.value.servings,
+        prep_time: scanResult.value.prep_time,
+        tags: scanResult.value.tags,
         ingredients: scanResult.value.ingredients
       }
     })
@@ -247,7 +318,7 @@ async function saveRecipe() {
     const toast = useToast()
     toast.add({
       title: 'Recette sauvegardée !',
-      description: 'Les ingrédients ont été ajoutés à votre base de données.',
+      description: 'Retrouvez-la dans l\'onglet "Mes Recettes".',
       color: 'success',
       icon: 'i-heroicons-check-circle'
     })
@@ -263,5 +334,6 @@ async function saveRecipe() {
 
 function resetScan() {
   scanResult.value = null
+  originalScanResult.value = null
 }
 </script>

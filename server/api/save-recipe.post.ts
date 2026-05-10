@@ -21,7 +21,10 @@ export default defineEventHandler(async (event) => {
     .from('recipes')
     .insert({
       title: body.title,
-      servings: body.servings || 2
+      servings: body.servings || 2,
+      prep_time: body.prep_time || null,
+      tags: body.tags || [],
+      in_shopping_list: false // Par défaut, non ajouté à la liste de courses
     })
     .select('id')
     .single();

@@ -39,6 +39,14 @@
           <span class="text-[10px] font-semibold tracking-wide">Scanner</span>
         </NuxtLink>
         <NuxtLink 
+          to="/recipes" 
+          class="flex flex-col items-center gap-1 w-16 text-gray-400 transition-colors" 
+          active-class="text-primary-500"
+        >
+          <UIcon name="i-heroicons-book-open" class="w-6 h-6" />
+          <span class="text-[10px] font-semibold tracking-wide">Recettes</span>
+        </NuxtLink>
+        <NuxtLink 
           to="/shopping-list" 
           class="flex flex-col items-center gap-1 w-16 text-gray-400 transition-colors" 
           active-class="text-primary-500"

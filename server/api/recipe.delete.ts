@@ -1,0 +1,42 @@
+import { createClient } from '@supabase/supabase-js';
+
+export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig();
+  
+  if (!config.public.supabaseUrl || !config.supabaseServiceKey) {
+    throw createError({ statusCode: 500, statusMessage: 'Identifiants Supabase manquants.' });
+  }
+
+  const query = getQuery(event);
+  const id = query.id as string;
+
+  if (!id) {
+    throw createError({ statusCode: 400, statusMessage: 'ID de recette manquant.' });
+  }
+
+  const supabase = createClient(config.public.supabaseUrl, config.supabaseServiceKey);
+
+  // 1. Supprimer d'abord les ingrédients pour éviter les problèmes de clé étrangère
+  const { error: ingredientsError } = await supabase
+    .from('ingredients')
+    .delete()
+    .eq('recipe_id', id);
+
+  if (ingredientsError) {
+    console.error('Erreur Supabase (Delete Recipe Ingredients):', ingredientsError);
+    throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la suppression des ingrédients liés.' });
+  }
+
+  // 2. Supprimer la recette
+  const { error: recipeError } = await supabase
+    .from('recipes')
+    .delete()
+    .eq('id', id);
+
+  if (recipeError) {
+    console.error('Erreur Supabase (Delete Recipe):', recipeError);
+    throw createError({ statusCode: 500, statusMessage: 'Erreur lors de la suppression de la recette.' });
+  }
+
+  return { success: true, message: 'Recette supprimée avec succès.' };
+});

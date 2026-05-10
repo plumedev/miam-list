@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   const base64Image = imageFile.data.toString('base64');
   const mimeType = imageFile.type || 'image/jpeg';
 
-  const prompt = "Extrais le nom, le nombre de personnes et les ingrédients (quantité et unité). Convertis les fractions en décimales.";
+  const prompt = "Extrais le nom, le nombre de personnes, le temps de préparation estimé, les tags (déduis parmi: Viande, Poisson, Végétarien, Épicé, Calorie Smart) et les ingrédients (quantité et unité). Convertis les fractions en décimales.";
 
   try {
     const response = await ai.models.generateContent({
@@ -46,6 +46,11 @@ export default defineEventHandler(async (event) => {
           properties: {
             title: { type: Type.STRING },
             servings: { type: Type.INTEGER },
+            prep_time: { type: Type.STRING },
+            tags: { 
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            },
             ingredients: {
               type: Type.ARRAY,
               items: {

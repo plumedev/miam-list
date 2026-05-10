@@ -99,6 +99,27 @@
         Continuer
       </UButton>
     </div>
+    
+    <!-- Modal de confirmation -->
+    <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/75 backdrop-blur-sm p-4 transition-opacity">
+      <div class="bg-white dark:bg-gray-900 rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden border border-gray-100 dark:border-gray-800">
+        <div class="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-800">
+          <h3 class="font-bold text-lg text-gray-900 dark:text-white">Vider le panier</h3>
+          <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark" class="-my-1" @click="isDeleteModalOpen = false" />
+        </div>
+
+        <div class="p-5">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Voulez-vous vraiment vider votre liste de courses ? Les recettes retourneront dans votre carnet mais ne seront plus sélectionnées pour vos courses.
+          </p>
+        </div>
+
+        <div class="flex justify-end gap-3 p-5 bg-gray-50 dark:bg-gray-800/50">
+          <UButton color="neutral" variant="soft" @click="isDeleteModalOpen = false">Annuler</UButton>
+          <UButton color="red" :loading="isClearing" @click="executeClearList">Vider le panier</UButton>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -108,11 +129,13 @@ const toast = useToast()
 
 const { data: shoppingList, pending, error, refresh } = await useFetch<any[]>('/api/shopping-list')
 const isClearing = ref(false)
+const isDeleteModalOpen = ref(false)
 
-async function clearList() {
-  const confirmDelete = confirm("Voulez-vous vraiment vider votre liste de courses ? Toutes les recettes scannées seront oubliées.")
-  if (!confirmDelete) return
+function clearList() {
+  isDeleteModalOpen.value = true
+}
 
+async function executeClearList() {
   isClearing.value = true
   try {
     await $fetch('/api/shopping-list', {
@@ -133,11 +156,12 @@ async function clearList() {
     toast.add({
       title: 'Erreur',
       description: 'Impossible de vider la liste.',
-      color: 'error',
+      color: 'red',
       icon: 'i-heroicons-exclamation-circle'
     })
   } finally {
     isClearing.value = false
+    isDeleteModalOpen.value = false
   }
 }
 </script>
